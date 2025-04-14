@@ -1,12 +1,45 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import Header from '@/components/Header';
+import HeroSection from '@/components/HeroSection';
+import HowItWorks from '@/components/HowItWorks';
+import FeatureHighlights from '@/components/FeatureHighlights';
+import HandGestureRecognizer from '@/components/HandGestureRecognizer';
+import Footer from '@/components/Footer';
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
+    <div className="flex min-h-screen flex-col">
+      <Header />
+      <main className="flex-1">
+        <HeroSection />
+        <HowItWorks />
+        <FeatureHighlights />
+        
+        <section id="demo-section" className="py-16 bg-gradient-to-b from-background to-muted">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col items-center text-center space-y-4 mb-10">
+              <div className="inline-block rounded-full bg-isl-primary/10 px-3 py-1 text-sm font-medium text-isl-primary mb-2">
+                Live Demo
+              </div>
+              <h2 className="text-3xl font-bold">Experience ISL Translation</h2>
+              <p className="text-muted-foreground text-lg max-w-2xl">
+                Try our real-time ISL translation system directly in your browser.
+                Use sign language gestures and see them translated instantly.
+              </p>
+            </div>
+            
+            <HandGestureRecognizer />
+            
+            <div className="mt-8 text-center text-sm text-muted-foreground">
+              <p>
+                Note: This is a simplified demo version. The full system includes more advanced features like 
+                facial expression analysis, AI voice customization, and more.
+              </p>
+            </div>
+          </div>
+        </section>
+      </main>
+      <Footer />
     </div>
   );
 };
