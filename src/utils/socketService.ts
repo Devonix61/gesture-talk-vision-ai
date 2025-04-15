@@ -1,12 +1,12 @@
 
 import { v4 as uuidv4 } from 'uuid';
-import { Socket, io as socketIO } from 'socket.io-client';
+import { io } from 'socket.io-client';
 
 // Socket connection constants
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3000';
 
 // Socket instance
-let socket: ReturnType<typeof socketIO> | null = null;
+let socket: ReturnType<typeof io> | null = null;
 
 // Connection status
 let isConnected = false;
@@ -16,7 +16,7 @@ let isConnected = false;
  */
 export const initializeSocket = () => {
   if (!socket) {
-    socket = socketIO(SOCKET_URL, {
+    socket = io(SOCKET_URL, {
       transports: ['websocket'],
       autoConnect: true,
     });
