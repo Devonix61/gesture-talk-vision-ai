@@ -1,12 +1,12 @@
 
 import { v4 as uuidv4 } from 'uuid';
-import { io, Socket } from 'socket.io-client';
+import { io, Socket as SocketIO } from 'socket.io-client';
 
 // Socket connection constants
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3000';
 
 // Socket instance
-let socket: Socket | null = null;
+let socket: ReturnType<typeof io> | null = null;
 
 // Connection status
 let isConnected = false;
