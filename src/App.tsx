@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,6 +11,9 @@ import DashboardPage from "./pages/DashboardPage";
 import AuthPage from "./pages/AuthPage";
 import AboutPage from "./pages/AboutPage";
 import PrivacyPage from "./pages/PrivacyPage";
+import PricingPage from "./pages/PricingPage";
+import CheckoutPage from "./pages/CheckoutPage";
+import CheckoutSuccessPage from "./pages/CheckoutSuccessPage";
 
 const queryClient = new QueryClient();
 
@@ -57,12 +61,29 @@ const App = () => {
             <Route path="/" element={<Index />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/pricing" element={<PricingPage />} />
             <Route path="/login" element={<AuthPage />} />
             <Route 
               path="/dashboard" 
               element={
                 <PrivateRoute>
                   <DashboardPage />
+                </PrivateRoute>
+              } 
+            />
+            <Route 
+              path="/checkout" 
+              element={
+                <PrivateRoute>
+                  <CheckoutPage />
+                </PrivateRoute>
+              } 
+            />
+            <Route 
+              path="/checkout-success" 
+              element={
+                <PrivateRoute>
+                  <CheckoutSuccessPage />
                 </PrivateRoute>
               } 
             />

@@ -1,3 +1,4 @@
+
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -25,6 +26,9 @@ const Header = () => {
           </Link>
           <Link to="/about" className="text-sm font-medium hover:underline underline-offset-4">
             About
+          </Link>
+          <Link to="/pricing" className="text-sm font-medium hover:underline underline-offset-4">
+            Pricing
           </Link>
           <Link to="#features" className="text-sm font-medium hover:underline underline-offset-4">
             Features
@@ -62,14 +66,20 @@ const Header = () => {
               <Link to="/" className="text-base font-medium">
                 Home
               </Link>
+              <Link to="/about" className="text-base font-medium">
+                About
+              </Link>
+              <Link to="/pricing" className="text-base font-medium">
+                Pricing
+              </Link>
               <Link to="#features" className="text-base font-medium">
                 Features
               </Link>
               <Link to="#demo-section" className="text-base font-medium">
                 Demo
               </Link>
-              <Link to="#" className="text-base font-medium">
-                Pricing
+              <Link to="/privacy" className="text-base font-medium">
+                Privacy
               </Link>
               {isAuthenticated ? (
                 <>
