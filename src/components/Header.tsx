@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -24,14 +23,17 @@ const Header = () => {
           <Link to="/" className="text-sm font-medium hover:underline underline-offset-4">
             Home
           </Link>
+          <Link to="/about" className="text-sm font-medium hover:underline underline-offset-4">
+            About
+          </Link>
           <Link to="#features" className="text-sm font-medium hover:underline underline-offset-4">
             Features
           </Link>
           <Link to="#demo-section" className="text-sm font-medium hover:underline underline-offset-4">
             Demo
           </Link>
-          <Link to="#" className="text-sm font-medium hover:underline underline-offset-4">
-            Pricing
+          <Link to="/privacy" className="text-sm font-medium hover:underline underline-offset-4">
+            Privacy
           </Link>
           {isAuthenticated ? (
             <>
