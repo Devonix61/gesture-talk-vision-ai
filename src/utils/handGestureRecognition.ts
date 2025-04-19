@@ -26,7 +26,7 @@ const gestureToMeaning = new Map<string, string>([
 export const createGestureRecognizer = async (): Promise<boolean> => {
   try {
     const vision = await FilesetResolver.forVisionTasks(
-      "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm"
+      "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
     );
     
     gestureRecognizer = await GestureRecognizer.createFromOptions(vision, {
@@ -36,10 +36,12 @@ export const createGestureRecognizer = async (): Promise<boolean> => {
       },
       runningMode: "VIDEO",
       numHands: 2,
-      minHandDetectionConfidence: 0.5,
-      minHandPresenceConfidence: 0.5,
-      minTrackingConfidence: 0.5
+      minHandDetectionConfidence: 0.3,
+      minHandPresenceConfidence: 0.3,
+      minTrackingConfidence: 0.3
     });
+    
+    console.log("Gesture recognizer created successfully");
     return true;
   } catch (error) {
     console.error("Error creating gesture recognizer:", error);
@@ -53,44 +55,54 @@ export const recognizeGestures = (
   currentTime: number,
   onNewGesture?: (gesture: RecognizedGesture) => void
 ): GestureRecognizerResult | null => {
-  if (!gestureRecognizer) return null;
+  if (!gestureRecognizer) {
+    console.log("Gesture recognizer not initialized");
+    return null;
+  }
   
   // The video is being processed at a different timestamp
   if (lastVideoTime !== currentTime) {
     lastVideoTime = currentTime;
-    results = gestureRecognizer.recognizeForVideo(video, currentTime);
     
-    if (results.gestures && results.gestures.length > 0 && results.landmarks) {
-      const gesture = results.gestures[0][0];
+    try {
+      results = gestureRecognizer.recognizeForVideo(video, currentTime);
       
-      // If the gesture has high enough confidence
-      if (gesture.score > 0.7) {
-        const recognizedGesture: RecognizedGesture = {
-          gestureName: translateGesture(gesture.categoryName),
-          confidence: gesture.score,
-          timestamp: Date.now()
-        };
+      if (results.gestures && results.gestures.length > 0 && results.landmarks) {
+        console.log("Gesture detected:", results.gestures[0][0]);
         
-        // Check if this is a new gesture (different from the last one)
-        const lastGesture = gestureHistory.length > 0 ? gestureHistory[gestureHistory.length - 1] : null;
+        const gesture = results.gestures[0][0];
         
-        // Only register a new gesture if it's different or 2 seconds have passed
-        if (!lastGesture || 
-            lastGesture.gestureName !== recognizedGesture.gestureName || 
-            (recognizedGesture.timestamp - lastGesture.timestamp) > 2000) {
-            
-          gestureHistory.push(recognizedGesture);
-          // Keep history manageable
-          if (gestureHistory.length > 20) {
-            gestureHistory.shift();
-          }
+        // If the gesture has high enough confidence
+        if (gesture.score > 0.6) {
+          const recognizedGesture: RecognizedGesture = {
+            gestureName: translateGesture(gesture.categoryName),
+            confidence: gesture.score,
+            timestamp: Date.now()
+          };
           
-          // Notify about new gesture
-          if (onNewGesture) {
-            onNewGesture(recognizedGesture);
+          // Check if this is a new gesture (different from the last one)
+          const lastGesture = gestureHistory.length > 0 ? gestureHistory[gestureHistory.length - 1] : null;
+          
+          // Only register a new gesture if it's different or 2 seconds have passed
+          if (!lastGesture || 
+              lastGesture.gestureName !== recognizedGesture.gestureName || 
+              (recognizedGesture.timestamp - lastGesture.timestamp) > 2000) {
+              
+            gestureHistory.push(recognizedGesture);
+            // Keep history manageable
+            if (gestureHistory.length > 20) {
+              gestureHistory.shift();
+            }
+            
+            // Notify about new gesture
+            if (onNewGesture) {
+              onNewGesture(recognizedGesture);
+            }
           }
         }
       }
+    } catch (error) {
+      console.error("Error recognizing gesture:", error);
     }
   }
   

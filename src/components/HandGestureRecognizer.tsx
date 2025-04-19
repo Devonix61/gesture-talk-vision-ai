@@ -12,6 +12,7 @@ import { toast } from '@/components/ui/sonner';
 const HandGestureRecognizer = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animationRef = useRef<number | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   const [isRecording, setIsRecording] = useState(false);
   const [prediction, setPrediction] = useState<RecognizedGesture | null>(null);
@@ -30,14 +31,23 @@ const HandGestureRecognizer = () => {
   // Initialize the gesture recognizer
   useEffect(() => {
     const initRecognizer = async () => {
-      const success = await createGestureRecognizer();
-      setIsInitializing(false);
-      
-      if (!success) {
-        setErrorMessage('Failed to initialize the gesture recognizer. Please try again or check your browser compatibility.');
-        toast.error('Failed to initialize gesture recognizer');
-      } else {
-        toast.success('Gesture recognizer initialized successfully');
+      try {
+        console.log("Initializing gesture recognizer...");
+        const success = await createGestureRecognizer();
+        setIsInitializing(false);
+        
+        if (!success) {
+          setErrorMessage('Failed to initialize the gesture recognizer. Please try again or check your browser compatibility.');
+          toast.error('Failed to initialize gesture recognizer');
+        } else {
+          console.log("Gesture recognizer initialized successfully");
+          toast.success('Gesture recognizer initialized successfully');
+        }
+      } catch (error) {
+        console.error("Error in initRecognizer:", error);
+        setIsInitializing(false);
+        setErrorMessage('Error initializing the gesture recognizer: ' + (error instanceof Error ? error.message : String(error)));
+        toast.error('Error initializing gesture recognizer');
       }
     };
     
@@ -45,6 +55,9 @@ const HandGestureRecognizer = () => {
     
     // Clean up on unmount
     return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
       disposeGestureRecognizer();
     };
   }, []);
@@ -53,7 +66,6 @@ const HandGestureRecognizer = () => {
   useEffect(() => {
     if (!isRecording || !videoRef.current) return;
     
-    let animationFrameId: number;
     let lastGestureTime = 0;
     
     const processFrame = () => {
@@ -85,6 +97,7 @@ const HandGestureRecognizer = () => {
           const results = recognizeGestures(video, performance.now(), (gesture) => {
             // Handle new gesture
             setPrediction(gesture);
+            console.log("New gesture detected:", gesture.gestureName, "with confidence:", gesture.confidence);
             
             // Add to recognized gestures list if not empty
             if (gesture.gestureName && gesture.gestureName.trim() !== '') {
@@ -149,22 +162,24 @@ const HandGestureRecognizer = () => {
       }
       
       // Continue processing frames
-      animationFrameId = requestAnimationFrame(processFrame);
+      animationRef.current = requestAnimationFrame(processFrame);
     };
     
     // Start processing frames
-    animationFrameId = requestAnimationFrame(processFrame);
+    animationRef.current = requestAnimationFrame(processFrame);
     
     // Clean up animation frame on unmount or when recording stops
     return () => {
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
       }
     };
   }, [isRecording, isProcessingFrame, recognizedGestures]);
 
   const startCamera = async () => {
     try {
+      console.log("Starting camera...");
       const constraints = {
         video: {
           width: { ideal: 1280 },
@@ -176,11 +191,24 @@ const HandGestureRecognizer = () => {
       if (videoRef.current) {
         const stream = await navigator.mediaDevices.getUserMedia(constraints);
         videoRef.current.srcObject = stream;
-        setIsRecording(true);
-        setErrorMessage('');
-        setRecognizedGestures([]);
-        clearGestureHistory();
-        toast.success('Camera started successfully');
+        
+        // Wait for video to be ready
+        videoRef.current.onloadedmetadata = () => {
+          if (videoRef.current) {
+            videoRef.current.play().then(() => {
+              setIsRecording(true);
+              setErrorMessage('');
+              setRecognizedGestures([]);
+              clearGestureHistory();
+              console.log("Camera started successfully");
+              toast.success('Camera started successfully');
+            }).catch(err => {
+              console.error("Error playing video:", err);
+              setErrorMessage('Error playing video: ' + err.message);
+              toast.error('Error playing video');
+            });
+          }
+        };
       }
     } catch (err) {
       console.error("Error accessing camera:", err);
@@ -190,6 +218,11 @@ const HandGestureRecognizer = () => {
   };
 
   const stopCamera = () => {
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+      animationRef.current = null;
+    }
+    
     if (videoRef.current && videoRef.current.srcObject) {
       const stream = videoRef.current.srcObject as MediaStream;
       stream.getTracks().forEach(track => track.stop());
@@ -204,6 +237,7 @@ const HandGestureRecognizer = () => {
         if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
       }
       
+      console.log("Camera stopped");
       toast.info('Camera stopped');
     }
   };
