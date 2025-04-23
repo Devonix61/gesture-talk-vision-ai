@@ -12,8 +12,8 @@ let lastVideoTime = -1;
 let results: GestureRecognizerResult | null = null;
 const gestureHistory: RecognizedGesture[] = [];
 
-// Map of gesture names to their meaning in ISL
 const gestureToMeaning = new Map<string, string>([
+  // Current mappings
   ['Thumb_Up', 'Yes'],
   ['Thumb_Down', 'No'],
   ['Open_Palm', 'Hello'],
@@ -21,7 +21,18 @@ const gestureToMeaning = new Map<string, string>([
   ['ILoveYou', 'I love you'],
   ['Victory', 'Peace'],
   ['Pointing_Up', 'Attention'],
+  // Add more as needed, but allow showing "raw" name if no mapping provided
 ]);
+
+/**
+ * Modified to always include the raw gesture name if no mapping found.
+ */
+export const translateGesture = (gestureName: string): string => {
+  // Capitalize and add spaces to the raw category for UI, e.g. "Open_Palm" => "Open Palm"
+  const _prettify = (name: string) =>
+    name.replace(/_/g, ' ').replace(/\b\w/g, ch => ch.toUpperCase());
+  return gestureToMeaning.get(gestureName) || _prettify(gestureName);
+};
 
 export const createGestureRecognizer = async (): Promise<boolean> => {
   try {
@@ -49,7 +60,6 @@ export const createGestureRecognizer = async (): Promise<boolean> => {
   }
 };
 
-// Function to recognize gestures in video stream
 export const recognizeGestures = (
   video: HTMLVideoElement, 
   currentTime: number,
@@ -59,59 +69,45 @@ export const recognizeGestures = (
     console.log("Gesture recognizer not initialized");
     return null;
   }
-  
-  // The video is being processed at a different timestamp
+
+  // Only process new frames
   if (lastVideoTime !== currentTime) {
     lastVideoTime = currentTime;
-    
+
     try {
       results = gestureRecognizer.recognizeForVideo(video, currentTime);
-      
+
+      // Show all detected gestures by confidence
       if (results.gestures && results.gestures.length > 0 && results.landmarks) {
-        console.log("Gesture detected:", results.gestures[0][0]);
-        
-        const gesture = results.gestures[0][0];
-        
-        // If the gesture has high enough confidence
-        if (gesture.score > 0.6) {
-          const recognizedGesture: RecognizedGesture = {
-            gestureName: translateGesture(gesture.categoryName),
-            confidence: gesture.score,
-            timestamp: Date.now()
-          };
-          
-          // Check if this is a new gesture (different from the last one)
-          const lastGesture = gestureHistory.length > 0 ? gestureHistory[gestureHistory.length - 1] : null;
-          
-          // Only register a new gesture if it's different or 2 seconds have passed
-          if (!lastGesture || 
-              lastGesture.gestureName !== recognizedGesture.gestureName || 
-              (recognizedGesture.timestamp - lastGesture.timestamp) > 2000) {
-              
-            gestureHistory.push(recognizedGesture);
-            // Keep history manageable
-            if (gestureHistory.length > 20) {
-              gestureHistory.shift();
-            }
-            
-            // Notify about new gesture
-            if (onNewGesture) {
-              onNewGesture(recognizedGesture);
+        // Directly support ALL detected gestures
+        results.gestures[0].forEach(gesture => {
+          if (gesture.score > 0.55) { // Slightly lowered for more coverage
+            const recognizedGesture: RecognizedGesture = {
+              gestureName: translateGesture(gesture.categoryName),
+              confidence: gesture.score,
+              timestamp: Date.now()
+            };
+
+            // Only register if new or enough time passed (per sign)
+            const lastGesture = gestureHistory.length > 0 ? gestureHistory[gestureHistory.length - 1] : null;
+            if (
+              !lastGesture ||
+              lastGesture.gestureName !== recognizedGesture.gestureName ||
+              (recognizedGesture.timestamp - lastGesture.timestamp) > 2000
+            ) {
+              gestureHistory.push(recognizedGesture);
+              if (gestureHistory.length > 20) gestureHistory.shift();
+              if (onNewGesture) onNewGesture(recognizedGesture);
             }
           }
-        }
+        });
       }
     } catch (error) {
       console.error("Error recognizing gesture:", error);
     }
   }
-  
-  return results;
-};
 
-// Translate raw gesture names to meaningful words
-export const translateGesture = (gestureName: string): string => {
-  return gestureToMeaning.get(gestureName) || gestureName;
+  return results;
 };
 
 // Get recent recognized gestures

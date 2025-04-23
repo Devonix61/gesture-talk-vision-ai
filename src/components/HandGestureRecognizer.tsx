@@ -1,4 +1,3 @@
-
 import { useRef, useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -28,7 +27,9 @@ const HandGestureRecognizer = () => {
     volume: 1.0
   });
 
-  // Initialize the gesture recognizer
+  // New state: latest gestures returned by model
+  const [latestGestures, setLatestGestures] = useState<{ name: string, confidence: number }[]>([]);
+
   useEffect(() => {
     const initRecognizer = async () => {
       try {
@@ -62,40 +63,29 @@ const HandGestureRecognizer = () => {
     };
   }, []);
 
-  // Process video frames for gesture recognition
   useEffect(() => {
     if (!isRecording || !videoRef.current) return;
-    
+
     let lastGestureTime = 0;
-    
     const processFrame = () => {
       if (!videoRef.current || !canvasRef.current || !isRecording) return;
-      
+
       const video = videoRef.current;
       const canvas = canvasRef.current;
       const ctx = canvas.getContext('2d');
-      
       if (!ctx) return;
-      
-      // Update canvas dimensions to match video
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-      
-      // Draw video frame on canvas
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      
-      // Process gesture only if we're not already processing a frame
+
       if (!isProcessingFrame) {
         setIsProcessingFrame(true);
-        
-        // Process gestures at a reasonable rate (every 300ms)
         const now = Date.now();
         if (now - lastGestureTime > 300) {
           lastGestureTime = now;
-          
-          // Recognize gestures
+
+          // Recognize gestures & surface all returned by MediaPipe
           const results = recognizeGestures(video, performance.now(), (gesture) => {
-            // Handle new gesture
             setPrediction(gesture);
             console.log("New gesture detected:", gesture.gestureName, "with confidence:", gesture.confidence);
             
@@ -119,8 +109,21 @@ const HandGestureRecognizer = () => {
               }
             }
           });
-          
-          // Draw landmarks if available
+
+          // NEW: Show all gestures detected in the latest frame (with confidences)
+          if (results?.gestures && results.gestures.length > 0) {
+            setLatestGestures(
+              results.gestures[0]
+                .filter((g) => g.score > 0.25) // show almost everything for user feedback
+                .map((g) => ({
+                  name: g.categoryName.replace(/_/g, ' ').replace(/\b\w/g, ch => ch.toUpperCase()),
+                  confidence: Math.round(g.score * 100)
+                }))
+            );
+          } else {
+            setLatestGestures([]);
+          }
+
           if (results && results.landmarks) {
             results.landmarks.forEach(landmarkList => {
               // Draw landmarks
@@ -157,18 +160,11 @@ const HandGestureRecognizer = () => {
             });
           }
         }
-        
         setIsProcessingFrame(false);
       }
-      
-      // Continue processing frames
       animationRef.current = requestAnimationFrame(processFrame);
     };
-    
-    // Start processing frames
     animationRef.current = requestAnimationFrame(processFrame);
-    
-    // Clean up animation frame on unmount or when recording stops
     return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
@@ -292,7 +288,7 @@ const HandGestureRecognizer = () => {
         </div>
       ) : (
         <>
-          <div className="camera-container aspect-video mb-4">
+          <div className="camera-container aspect-video mb-4 relative">
             <video 
               ref={videoRef} 
               className="camera-feed"
@@ -304,7 +300,7 @@ const HandGestureRecognizer = () => {
               ref={canvasRef}
               className="absolute top-0 left-0 w-full h-full"
             />
-            
+
             {!isRecording && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm">
                 <Button 
@@ -316,19 +312,32 @@ const HandGestureRecognizer = () => {
                 </Button>
               </div>
             )}
-            
+
+            {/* Main gesture indication: Latest recognized gesture */}
             {prediction && (
-              <div className="absolute bottom-4 left-4 right-4 flex justify-between items-center">
-                <Badge variant="secondary" className="bg-secondary text-white px-3 py-1.5 text-lg">
+              <div className="absolute bottom-4 left-4 right-4 flex justify-between items-center pointer-events-none">
+                <Badge variant="secondary" className="bg-secondary text-white px-3 py-1.5 text-lg shadow-lg">
                   {prediction.gestureName}
                 </Badge>
-                <Badge variant="outline" className="bg-white/80 text-foreground px-2 py-1">
+                <Badge variant="outline" className="bg-white/85 text-foreground px-2 py-1 shadow">
                   Confidence: {Math.round(prediction.confidence * 100)}%
                 </Badge>
               </div>
             )}
+            {/* NEW: Display all detected gestures inline for transparency */}
+            {latestGestures.length > 0 && (
+              <div className="absolute top-4 right-4 z-20 bg-background/90 rounded-lg shadow-lg px-3 py-2 border border-primary/10 flex flex-col space-y-1 min-w-[140px] pointer-events-auto">
+                <div className="font-semibold text-primary text-xs mb-1">Detected Gestures</div>
+                {latestGestures.map((g, idx) => (
+                  <div key={g.name+idx} className="flex items-center justify-between text-xs">
+                    <span className="text-foreground">{g.name}</span>
+                    <span className="ml-2 text-muted-foreground">{g.confidence}%</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-          
+
           {errorMessage && (
             <div className="bg-destructive/10 border border-destructive text-destructive p-3 rounded-md mb-4">
               {errorMessage}
