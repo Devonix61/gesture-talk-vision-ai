@@ -94,11 +94,22 @@ const config = {
           "50%": { transform: "scale(1)", opacity: "0.8" },
           "100%": { transform: "scale(0.95)", opacity: "1" },
         },
+        "float": {
+          "0%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-10px)" },
+          "100%": { transform: "translateY(0px)" },
+        },
+        "pulse": {
+          "0%, 100%": { opacity: "1", transform: "scale(1)" },
+          "50%": { opacity: "0.8", transform: "scale(1.05)" },
+        }
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "pulse-ring": "pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "float": "float 6s ease-in-out infinite",
+        "pulse": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
       },
     },
   },

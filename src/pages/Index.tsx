@@ -16,12 +16,12 @@ const Index = () => {
       <main className="flex-1">
         <HeroSection />
         
-        <div className="relative">
+        <div className="relative py-8">
           <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 pointer-events-none blur-3xl opacity-40" />
           <HowItWorks />
         </div>
         
-        <div className="relative overflow-hidden">
+        <div className="relative overflow-hidden py-8">
           <div className="absolute inset-0 bg-gradient-to-b from-muted/40 via-background to-background/95 pointer-events-none" />
           <FeatureHighlights />
         </div>
@@ -33,7 +33,7 @@ const Index = () => {
           
           <div className="container px-4 md:px-6 relative">
             <div className="flex flex-col items-center text-center space-y-6 mb-16">
-              <div className="inline-block rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary mb-4 animate-fade-in hover:bg-primary/20 transition-colors duration-300 backdrop-blur-sm">
+              <div className="inline-block rounded-full bg-gradient-to-r from-primary/20 to-secondary/20 px-4 py-1.5 text-sm font-medium text-primary mb-4 animate-fade-in hover:bg-primary/20 transition-colors duration-300 backdrop-blur-sm border border-primary/10">
                 Live Demo
               </div>
               <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
@@ -45,7 +45,7 @@ const Index = () => {
               </p>
             </div>
             
-            <div className="glass-card p-6 md:p-8 rounded-2xl relative mb-12 shadow-2xl shadow-primary/5 hover:shadow-primary/10 transition-shadow duration-300 border border-white/10 backdrop-blur-sm">
+            <div className="glass-card p-6 md:p-8 rounded-2xl relative mb-12 shadow-xl hover:shadow-2xl transition-all duration-500 border border-white/20 backdrop-blur-lg">
               <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-accent/5 rounded-2xl opacity-70" />
               <HandGestureRecognizer />
             </div>
