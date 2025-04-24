@@ -54,12 +54,17 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // ISL Brand Colors
+        // Enhanced ISL Brand Colors
         isl: {
           primary: "#3B82F6", // Blue
           secondary: "#8B5CF6", // Purple
           accent: "#60A5FA", // Light Blue
           text: "#1E293B", // Slate Dark
+          success: "#10B981", // Green
+          warning: "#F59E0B", // Amber
+          error: "#EF4444", // Red
+          dark: "#111827", // Almost Black
+          light: "#F9FAFB", // Almost White
         },
         sidebar: {
           background: "hsl(var(--sidebar-background))",
@@ -102,6 +107,38 @@ const config = {
         "pulse": {
           "0%, 100%": { opacity: "1", transform: "scale(1)" },
           "50%": { opacity: "0.8", transform: "scale(1.05)" },
+        },
+        "slide-up": {
+          "0%": { transform: "translateY(20px)", opacity: "0" },
+          "100%": { transform: "translateY(0)", opacity: "1" },
+        },
+        "slide-down": {
+          "0%": { transform: "translateY(-20px)", opacity: "0" },
+          "100%": { transform: "translateY(0)", opacity: "1" },
+        },
+        "slide-in-left": {
+          "0%": { transform: "translateX(-20px)", opacity: "0" },
+          "100%": { transform: "translateX(0)", opacity: "1" },
+        },
+        "slide-in-right": {
+          "0%": { transform: "translateX(20px)", opacity: "0" },
+          "100%": { transform: "translateX(0)", opacity: "1" },
+        },
+        "zoom-in": {
+          "0%": { transform: "scale(0.95)", opacity: "0" },
+          "100%": { transform: "scale(1)", opacity: "1" },
+        },
+        "bounce-subtle": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-5px)" },
+        },
+        "ripple": {
+          "0%": { transform: "scale(0)", opacity: "1" },
+          "100%": { transform: "scale(4)", opacity: "0" },
+        },
+        "shimmer": {
+          "0%": { backgroundPosition: "-200% 0" },
+          "100%": { backgroundPosition: "200% 0" },
         }
       },
       animation: {
@@ -110,6 +147,14 @@ const config = {
         "pulse-ring": "pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
         "float": "float 6s ease-in-out infinite",
         "pulse": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "slide-up": "slide-up 0.5s ease-out",
+        "slide-down": "slide-down 0.5s ease-out",
+        "slide-in-left": "slide-in-left 0.5s ease-out",
+        "slide-in-right": "slide-in-right 0.5s ease-out",
+        "zoom-in": "zoom-in 0.5s ease-out",
+        "bounce-subtle": "bounce-subtle 2s infinite",
+        "ripple": "ripple 1s linear",
+        "shimmer": "shimmer 2s linear infinite",
       },
     },
   },
