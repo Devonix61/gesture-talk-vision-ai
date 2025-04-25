@@ -14,6 +14,7 @@ import PrivacyPage from "./pages/PrivacyPage";
 import PricingPage from "./pages/PricingPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import CheckoutSuccessPage from "./pages/CheckoutSuccessPage";
+import AnalyticsPage from "./pages/AnalyticsPage";
 
 const queryClient = new QueryClient();
 
@@ -68,6 +69,14 @@ const App = () => {
               element={
                 <PrivateRoute>
                   <DashboardPage />
+                </PrivateRoute>
+              } 
+            />
+            <Route 
+              path="/analytics" 
+              element={
+                <PrivateRoute>
+                  <AnalyticsPage />
                 </PrivateRoute>
               } 
             />

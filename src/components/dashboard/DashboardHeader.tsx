@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, LogOut, BarChart, Camera } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/components/ui/sonner';
+import { Link } from 'react-router-dom';
 
 const DashboardHeader = () => {
   const navigate = useNavigate();
@@ -25,9 +26,9 @@ const DashboardHeader = () => {
             variant="ghost" 
             size="sm" 
             onClick={handleBackToHome}
-            className="hover:bg-background/50 transition-colors"
+            className="hover:bg-background/50 transition-colors group"
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
             Back to Home
           </Button>
           <Button 
@@ -49,13 +50,15 @@ const DashboardHeader = () => {
       </div>
       
       <div className="flex flex-col sm:flex-row gap-2">
-        <Button 
-          variant="outline" 
-          className="border-isl-primary/20 hover:bg-isl-primary/10 transition-all group"
-        >
-          <BarChart className="mr-2 h-4 w-4 text-isl-primary group-hover:scale-110 transition-transform" />
-          Analytics
-        </Button>
+        <Link to="/analytics">
+          <Button 
+            variant="outline" 
+            className="border-isl-primary/20 hover:bg-isl-primary/10 transition-all group"
+          >
+            <BarChart className="mr-2 h-4 w-4 text-isl-primary group-hover:scale-110 transition-transform" />
+            Analytics
+          </Button>
+        </Link>
         <Button 
           className="bg-gradient-to-r from-isl-primary to-isl-secondary hover:opacity-90 transition-all group"
         >

@@ -6,6 +6,8 @@ import FeatureHighlights from '@/components/FeatureHighlights';
 import HandGestureRecognizer from '@/components/HandGestureRecognizer';
 import DatasetTraining from '@/components/DatasetTraining';
 import Footer from '@/components/Footer';
+import FeaturesSection from '@/components/FeaturesSection';
+import VoiceCallSupport from '@/components/VoiceCallSupport';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
@@ -13,6 +15,7 @@ import { useState } from 'react';
 
 const Index = () => {
   const [showDatasetTraining, setShowDatasetTraining] = useState(false);
+  const [showVoiceCall, setShowVoiceCall] = useState(false);
   
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-b from-background via-background/95 to-background/90">
@@ -24,6 +27,8 @@ const Index = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 pointer-events-none blur-3xl opacity-40" />
           <HowItWorks />
         </div>
+        
+        <FeaturesSection />
         
         <div className="relative overflow-hidden py-16">
           <div className="absolute inset-0 bg-gradient-to-b from-muted/40 via-background to-background/95 pointer-events-none" />
@@ -55,16 +60,31 @@ const Index = () => {
             </div>
             
             <div className="flex flex-col items-center space-y-10 mt-20">
-              <Button 
-                onClick={() => setShowDatasetTraining(!showDatasetTraining)}
-                className="bg-gradient-to-r from-isl-primary to-isl-secondary text-white hover:opacity-90 transition-all duration-300 shadow-lg hover:shadow-xl py-6 px-8 text-lg"
-              >
-                {showDatasetTraining ? "Hide Dataset Training" : "Create Custom Dataset"}
-              </Button>
+              <div className="flex flex-wrap justify-center gap-4">
+                <Button 
+                  onClick={() => setShowDatasetTraining(!showDatasetTraining)}
+                  className="bg-gradient-to-r from-isl-primary to-isl-secondary text-white hover:opacity-90 transition-all duration-300 shadow-lg hover:shadow-xl py-6 px-8 text-lg"
+                >
+                  {showDatasetTraining ? "Hide Dataset Training" : "Create Custom Dataset"}
+                </Button>
+                
+                <Button 
+                  onClick={() => setShowVoiceCall(!showVoiceCall)}
+                  className="bg-gradient-to-r from-isl-secondary to-isl-accent text-white hover:opacity-90 transition-all duration-300 shadow-lg hover:shadow-xl py-6 px-8 text-lg"
+                >
+                  {showVoiceCall ? "Hide Voice Call" : "Try Voice Call Support"}
+                </Button>
+              </div>
               
               {showDatasetTraining && (
                 <div className="w-full mt-8 animate-slide-down">
                   <DatasetTraining />
+                </div>
+              )}
+              
+              {showVoiceCall && (
+                <div className="w-full max-w-2xl mt-8 animate-slide-down">
+                  <VoiceCallSupport />
                 </div>
               )}
               
