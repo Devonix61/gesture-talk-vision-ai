@@ -1,273 +1,280 @@
 
-import { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Mic, MicOff, Phone, PhoneOff, Volume2, Settings, Wand2, Users } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
-import { Mic, MicOff, Phone, VolumeX, Volume2 } from 'lucide-react';
-import { VoiceType, speakText, speakWithEmotion, stopSpeaking } from '@/utils/speechService';
 
-interface VoiceCallSupportProps {
-  className?: string;
-}
-
-const VoiceCallSupport = ({ className }: VoiceCallSupportProps) => {
-  const [isCallActive, setIsCallActive] = useState(false);
+const VoiceCallSupport = () => {
+  const [isActive, setIsActive] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const [volume, setVolume] = useState(80);
-  const [voiceType, setVoiceType] = useState<VoiceType>(VoiceType.NEUTRAL);
-  const [autoAnswer, setAutoAnswer] = useState(false);
-  const [pitchValue, setPitchValue] = useState(1.0);
-  const [rateValue, setRateValue] = useState(1.0);
+  const [volume, setVolume] = useState([80]);
+  const [selectedVoice, setSelectedVoice] = useState("sarah");
+  const [advancedSettings, setAdvancedSettings] = useState({
+    noiseReduction: true,
+    emotionDetection: true,
+    autoTranslate: false,
+    accentStrength: [50]
+  });
+  const [callStatus, setCallStatus] = useState<'idle' | 'connecting' | 'active' | 'ended'>('idle');
 
-  useEffect(() => {
-    // Cleanup speaking when component unmounts
-    return () => {
-      stopSpeaking();
-    };
-  }, []);
-
-  const handleVoiceCall = () => {
-    if (isCallActive) {
-      endCall();
+  const handleStartCall = () => {
+    if (!isActive) {
+      setCallStatus('connecting');
+      toast.info("Initializing voice engine...");
+      
+      // Simulate connection delay
+      setTimeout(() => {
+        setIsActive(true);
+        setCallStatus('active');
+        toast.success("Voice call system activated");
+      }, 1500);
     } else {
-      startCall();
+      setIsActive(false);
+      setCallStatus('ended');
+      toast.info("Voice call system deactivated");
+      
+      // Reset to idle after showing ended state
+      setTimeout(() => {
+        setCallStatus('idle');
+      }, 2000);
     }
   };
 
-  const startCall = () => {
-    setIsCallActive(true);
-    toast.success('Voice call started', {
-      description: 'You can now communicate using voice synthesis',
-    });
-    
-    // Demo greeting when call starts
-    setTimeout(() => {
-      speakText(
-        "Hello, I'm your ISL translator assistant. I will convert your sign language to speech. How can I help you today?",
-        {
-          type: voiceType,
-          pitch: pitchValue,
-          rate: rateValue,
-          volume: volume / 100
-        }
-      );
-    }, 500);
-  };
-
-  const endCall = () => {
-    setIsCallActive(false);
-    stopSpeaking();
-    toast.info('Voice call ended', {
-      description: 'Thank you for using our voice call feature',
-    });
-  };
-
-  const toggleMute = () => {
+  const handleMute = () => {
     setIsMuted(!isMuted);
-    
-    if (!isMuted) {
-      stopSpeaking();
-      toast.info('Microphone muted');
-    } else {
-      toast.info('Microphone unmuted');
+    toast.info(isMuted ? "Microphone activated" : "Microphone muted");
+  };
+
+  const handleVoiceChange = (value: string) => {
+    setSelectedVoice(value);
+    toast.success(`Voice changed to ${getVoiceName(value)}`);
+  };
+
+  const toggleAdvancedSetting = (setting: keyof typeof advancedSettings) => {
+    if (typeof advancedSettings[setting] === 'boolean') {
+      setAdvancedSettings({
+        ...advancedSettings,
+        [setting]: !advancedSettings[setting]
+      });
+      
+      toast.info(`${setting.charAt(0).toUpperCase() + setting.slice(1).replace(/([A-Z])/g, ' $1')} ${advancedSettings[setting] ? 'disabled' : 'enabled'}`);
     }
   };
 
-  const handleVolumeChange = (value: number[]) => {
-    setVolume(value[0]);
-  };
-
-  const handleTestVoice = () => {
-    const messages = [
-      "Hello, this is a test of the voice synthesis system.",
-      "This is how your voice will sound during translation.",
-      "You can adjust the pitch and speed to your preference."
-    ];
-    
-    const randomMessage = messages[Math.floor(Math.random() * messages.length)];
-    
-    speakText(
-      randomMessage,
-      {
-        type: voiceType,
-        pitch: pitchValue,
-        rate: rateValue,
-        volume: volume / 100
-      }
-    );
-  };
-
-  const handleEmotionDemo = (emotion: 'positive' | 'negative' | 'neutral') => {
-    const messages = {
-      positive: "I'm so excited to help you with sign language translation!",
-      neutral: "This is a neutral voice sample for sign language translation.",
-      negative: "I'm sorry, I couldn't understand that sign gesture correctly."
+  const getVoiceName = (id: string): string => {
+    const voices = {
+      "sarah": "Sarah (Default)",
+      "roger": "Roger (Male)",
+      "aria": "Aria (Female)",
+      "charlie": "Charlie (Neutral)",
+      "custom": "Custom Voice"
     };
-    
-    speakWithEmotion(
-      messages[emotion],
-      emotion,
-      {
-        type: voiceType,
-        pitch: pitchValue,
-        rate: rateValue,
-        volume: volume / 100
-      }
-    );
+    return voices[id as keyof typeof voices] || id;
+  };
+
+  const getCallStatusClass = () => {
+    switch (callStatus) {
+      case 'connecting': return 'bg-yellow-500/20 text-yellow-500 border-yellow-500/40';
+      case 'active': return 'bg-green-500/20 text-green-500 border-green-500/40 animate-pulse';
+      case 'ended': return 'bg-red-500/20 text-red-500 border-red-500/40';
+      default: return 'bg-muted/30 text-muted-foreground border-muted/40';
+    }
+  };
+
+  const getCallStatusText = () => {
+    switch (callStatus) {
+      case 'connecting': return 'Connecting...';
+      case 'active': return 'Call Active';
+      case 'ended': return 'Call Ended';
+      default: return 'Voice Call Ready';
+    }
   };
 
   return (
-    <Card className={`shadow-lg hover:shadow-xl transition-all duration-300 ${className}`}>
-      <CardHeader className="bg-gradient-to-r from-isl-primary/10 to-isl-secondary/10 rounded-t-lg">
-        <CardTitle className="text-2xl">Voice Call Support</CardTitle>
-        <CardDescription>Enable voice synthesis for your sign language translations</CardDescription>
-      </CardHeader>
-      
-      <CardContent className="p-6 space-y-6">
-        <div className="flex flex-col space-y-2">
-          <div className="flex justify-between items-center">
-            <Label htmlFor="voice-type">Voice Type</Label>
-            <Select 
-              value={voiceType} 
-              onValueChange={(val: VoiceType) => setVoiceType(val)}
-              disabled={isCallActive}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select voice type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={VoiceType.MALE}>Male</SelectItem>
-                <SelectItem value={VoiceType.FEMALE}>Female</SelectItem>
-                <SelectItem value={VoiceType.NEUTRAL}>Neutral</SelectItem>
-              </SelectContent>
-            </Select>
+    <div className="bg-card/80 border border-border rounded-xl p-6 shadow-lg backdrop-blur-sm">
+      <div className="flex flex-col space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-xl font-semibold flex items-center">
+              <Phone className="mr-2 h-5 w-5 text-primary" />
+              Voice Call Support
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Translate ISL to voice during phone calls in real-time
+            </p>
           </div>
           
-          <div className="flex justify-between items-center pt-4">
-            <Label>Voice Pitch</Label>
-            <div className="flex items-center gap-4 w-72">
-              <span className="text-xs text-muted-foreground">Low</span>
-              <Slider 
-                value={[pitchValue * 50]} 
-                onValueChange={(val) => setPitchValue(val[0] / 50)} 
-                max={100} 
-                step={1} 
-                disabled={isCallActive}
-                className="flex-1"
-              />
-              <span className="text-xs text-muted-foreground">High</span>
+          <Badge 
+            variant="outline" 
+            className={`px-3 py-1 transition-colors duration-300 ${getCallStatusClass()}`}
+          >
+            {getCallStatusText()}
+          </Badge>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Main controls */}
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Voice Selection</Label>
+              <Select value={selectedVoice} onValueChange={handleVoiceChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a voice" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sarah">Sarah (Default)</SelectItem>
+                  <SelectItem value="roger">Roger (Male)</SelectItem>
+                  <SelectItem value="aria">Aria (Female)</SelectItem>
+                  <SelectItem value="charlie">Charlie (Neutral)</SelectItem>
+                  <SelectItem value="custom">Custom Voice</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              {selectedVoice === 'custom' && (
+                <div className="p-3 bg-muted/30 rounded-md mt-2">
+                  <p className="text-xs text-muted-foreground">
+                    Custom voice requires voice sample recording. Visit dashboard to set up.
+                  </p>
+                </div>
+              )}
             </div>
-            <span className="w-12 text-right text-sm">{(pitchValue).toFixed(1)}</span>
-          </div>
-          
-          <div className="flex justify-between items-center pt-4">
-            <Label>Speech Rate</Label>
-            <div className="flex items-center gap-4 w-72">
-              <span className="text-xs text-muted-foreground">Slow</span>
-              <Slider 
-                value={[rateValue * 50]} 
-                onValueChange={(val) => setRateValue(val[0] / 50)} 
-                max={100} 
-                step={1} 
-                disabled={isCallActive}
-                className="flex-1"
-              />
-              <span className="text-xs text-muted-foreground">Fast</span>
+            
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>Volume</Label>
+                <span className="text-sm text-muted-foreground">{volume[0]}%</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Volume2 className="h-4 w-4 text-muted-foreground" />
+                <Slider
+                  value={volume}
+                  min={0}
+                  max={100}
+                  step={1}
+                  onValueChange={setVolume}
+                  className="flex-1"
+                  disabled={!isActive}
+                />
+              </div>
             </div>
-            <span className="w-12 text-right text-sm">{(rateValue).toFixed(1)}</span>
-          </div>
-          
-          <div className="flex justify-between items-center pt-4">
-            <Label>Volume</Label>
-            <div className="flex items-center gap-4 w-72">
-              <VolumeX className="h-4 w-4 text-muted-foreground" />
-              <Slider 
-                value={[volume]} 
-                onValueChange={handleVolumeChange} 
-                max={100} 
-                step={1} 
-                className="flex-1"
-              />
-              <Volume2 className="h-4 w-4 text-muted-foreground" />
+            
+            <div className="space-y-4">
+              <div className="flex justify-between">
+                <Label className="font-medium">Advanced Settings</Label>
+                <Button variant="ghost" size="sm" className="h-7 px-2">
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Wand2 className="h-4 w-4 text-primary" />
+                    <Label>Noise Reduction</Label>
+                  </div>
+                  <Switch 
+                    checked={advancedSettings.noiseReduction}
+                    onCheckedChange={() => toggleAdvancedSetting('noiseReduction')}
+                    disabled={!isActive}
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Wand2 className="h-4 w-4 text-primary" />
+                    <Label>Emotion Detection</Label>
+                  </div>
+                  <Switch 
+                    checked={advancedSettings.emotionDetection}
+                    onCheckedChange={() => toggleAdvancedSetting('emotionDetection')}
+                    disabled={!isActive}
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Users className="h-4 w-4 text-primary" />
+                    <Label>Auto-translate Incoming</Label>
+                  </div>
+                  <Switch 
+                    checked={advancedSettings.autoTranslate}
+                    onCheckedChange={() => toggleAdvancedSetting('autoTranslate')}
+                    disabled={!isActive}
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>Accent Strength</Label>
+                  <span className="text-sm text-muted-foreground">{advancedSettings.accentStrength[0]}%</span>
+                </div>
+                <Slider
+                  value={advancedSettings.accentStrength}
+                  min={0}
+                  max={100}
+                  step={5}
+                  onValueChange={(value) => setAdvancedSettings({...advancedSettings, accentStrength: value})}
+                  disabled={!isActive}
+                  className="flex-1"
+                />
+              </div>
             </div>
-            <span className="w-12 text-right text-sm">{volume}%</span>
           </div>
           
-          <div className="flex items-center space-x-2 pt-4">
-            <Switch 
-              id="auto-answer" 
-              checked={autoAnswer} 
-              onCheckedChange={setAutoAnswer}
-              disabled={isCallActive} 
-            />
-            <Label htmlFor="auto-answer">Auto-answer with voice synthesis</Label>
+          {/* Call visualization / status */}
+          <div className="flex flex-col items-center justify-between h-full bg-muted/20 p-5 rounded-xl border border-border/50">
+            <div className="w-full flex-1 flex items-center justify-center">
+              <div className="relative">
+                <div className={`w-32 h-32 rounded-full ${isActive ? 'bg-primary/10' : 'bg-muted/30'} flex items-center justify-center`}>
+                  <div className={`absolute w-32 h-32 rounded-full ${isActive ? 'bg-primary/5' : 'bg-transparent'} animate-ping-slow opacity-70`}></div>
+                  <div className={`absolute w-48 h-48 rounded-full ${isActive ? 'bg-primary/3' : 'bg-transparent'} animate-ping-slow opacity-30 animation-delay-300`}></div>
+                  <div className={`absolute w-64 h-64 rounded-full ${isActive ? 'bg-primary/1' : 'bg-transparent'} animate-ping-slow opacity-10 animation-delay-600`}></div>
+                  
+                  <div className="text-4xl font-bold text-primary/80">
+                    {isActive ? (isMuted ? <MicOff /> : <Mic className="animate-pulse" />) : <Phone />}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex flex-col w-full space-y-4 mt-6">
+              {isActive && (
+                <Button 
+                  variant={isMuted ? "default" : "outline"}
+                  className={`w-full ${isMuted ? 'bg-red-500 hover:bg-red-600' : 'border-primary/30 hover:bg-primary/10'}`}
+                  onClick={handleMute}
+                >
+                  {isMuted ? <MicOff className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}
+                  {isMuted ? 'Unmute' : 'Mute'}
+                </Button>
+              )}
+              
+              <Button 
+                className={`w-full ${isActive ? 'bg-red-500 hover:bg-red-600' : 'bg-primary hover:bg-primary/90'}`}
+                onClick={handleStartCall}
+              >
+                {isActive ? <PhoneOff className="mr-2 h-4 w-4" /> : <Phone className="mr-2 h-4 w-4" />}
+                {isActive ? 'End Call' : 'Start Call'}
+              </Button>
+            </div>
           </div>
         </div>
         
-        <div className="pt-4 grid grid-cols-3 gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => handleEmotionDemo('positive')}
-            className="text-green-600 hover:text-green-700 hover:bg-green-50 transition-colors"
-          >
-            Test Happy Voice
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => handleEmotionDemo('neutral')}
-            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 transition-colors"
-          >
-            Test Neutral Voice
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => handleEmotionDemo('negative')}
-            className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 transition-colors"
-          >
-            Test Sad Voice
-          </Button>
+        {/* Feature highlight at the bottom */}
+        <div className="p-3 bg-primary/10 border border-primary/30 rounded-lg mt-2">
+          <p className="text-sm text-center">
+            <strong>New!</strong> Our voice call system now supports emotion detection and can match 
+            your signing emotion with appropriate voice inflection.
+          </p>
         </div>
-        
-        <div className="pt-6">
-          <Button 
-            onClick={handleTestVoice}
-            variant="outline" 
-            className="w-full bg-primary/5 hover:bg-primary/10"
-          >
-            Test Voice Settings
-          </Button>
-        </div>
-      </CardContent>
-      
-      <CardFooter className="bg-muted/30 flex justify-between rounded-b-lg p-6">
-        <Button 
-          variant={isCallActive ? "destructive" : "default"}
-          className={`gap-2 ${!isCallActive && "bg-green-600 hover:bg-green-700"}`}
-          onClick={handleVoiceCall}
-        >
-          <Phone className="h-4 w-4" />
-          {isCallActive ? 'End Call' : 'Start Voice Call'}
-        </Button>
-        
-        {isCallActive && (
-          <Button 
-            variant="outline" 
-            className={isMuted ? "bg-destructive/10 text-destructive hover:bg-destructive/20 hover:text-destructive" : ""}
-            onClick={toggleMute}
-          >
-            {isMuted ? <MicOff className="h-4 w-4 mr-2" /> : <Mic className="h-4 w-4 mr-2" />}
-            {isMuted ? 'Unmute' : 'Mute'}
-          </Button>
-        )}
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 };
 

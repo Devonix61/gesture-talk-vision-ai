@@ -15,6 +15,7 @@ import PricingPage from "./pages/PricingPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import CheckoutSuccessPage from "./pages/CheckoutSuccessPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
+import FeaturesPage from "./pages/FeaturesPage";
 
 const queryClient = new QueryClient();
 
@@ -63,6 +64,7 @@ const App = () => {
             <Route path="/about" element={<AboutPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/features" element={<FeaturesPage />} /> {/* Added new route */}
             <Route path="/login" element={<AuthPage />} />
             <Route 
               path="/dashboard" 

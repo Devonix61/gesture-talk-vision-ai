@@ -17,7 +17,9 @@ import {
   ArrowRight, 
   CheckCircle
 } from 'lucide-react';
+import { toast } from '@/components/ui/sonner';
 import { motion } from '@/components/ui/motion';
+import { Link } from 'react-router-dom';
 
 const features = {
   core: [
@@ -144,6 +146,17 @@ const features = {
 
 const FeaturesSection = () => {
   const [activeFeature, setActiveFeature] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState('core');
+
+  const handleLearnMore = (title: string) => {
+    toast.info(`Learn more about ${title}`, {
+      description: "Detailed documentation is available in your dashboard",
+      action: {
+        label: "View Docs",
+        onClick: () => console.log(`Viewing docs for ${title}`)
+      }
+    });
+  };
 
   return (
     <section id="features" className="py-20 relative overflow-hidden bg-gradient-to-b from-background to-muted/20">
@@ -162,7 +175,7 @@ const FeaturesSection = () => {
           </p>
         </div>
 
-        <Tabs defaultValue="core" className="space-y-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
           <div className="flex justify-center">
             <TabsList className="grid w-full max-w-md grid-cols-3 h-12">
               <TabsTrigger value="core" className="text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
@@ -186,6 +199,7 @@ const FeaturesSection = () => {
                   isActive={activeFeature === index}
                   onMouseEnter={() => setActiveFeature(index)}
                   onMouseLeave={() => setActiveFeature(null)}
+                  onLearnMore={() => handleLearnMore(feature.title)}
                   index={index}
                 />
               ))}
@@ -201,6 +215,7 @@ const FeaturesSection = () => {
                   isActive={activeFeature === index + 4}
                   onMouseEnter={() => setActiveFeature(index + 4)}
                   onMouseLeave={() => setActiveFeature(null)}
+                  onLearnMore={() => handleLearnMore(feature.title)}
                   index={index}
                 />
               ))}
@@ -216,6 +231,7 @@ const FeaturesSection = () => {
                   isActive={activeFeature === index + 8}
                   onMouseEnter={() => setActiveFeature(index + 8)}
                   onMouseLeave={() => setActiveFeature(null)}
+                  onLearnMore={() => handleLearnMore(feature.title)}
                   index={index}
                   wide
                 />
@@ -230,7 +246,13 @@ const FeaturesSection = () => {
                     Custom implementation, dedicated support, and SLA guarantees for organizations.
                   </p>
                 </div>
-                <Button size="lg" className="bg-gradient-to-r from-isl-primary to-isl-secondary group">
+                <Button 
+                  size="lg" 
+                  className="bg-gradient-to-r from-isl-primary to-isl-secondary group"
+                  onClick={() => toast.success("Enterprise contact request submitted", {
+                    description: "Our sales team will reach out to you shortly."
+                  })}
+                >
                   Contact Sales
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
@@ -257,11 +279,12 @@ interface FeatureCardProps {
   isActive: boolean;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
+  onLearnMore: () => void;
   index: number;
   wide?: boolean;
 }
 
-const FeatureCard = ({ feature, isActive, onMouseEnter, onMouseLeave, index, wide = false }: FeatureCardProps) => {
+const FeatureCard = ({ feature, isActive, onMouseEnter, onMouseLeave, onLearnMore, index, wide = false }: FeatureCardProps) => {
   const Icon = feature.icon;
   
   return (
@@ -301,7 +324,12 @@ const FeatureCard = ({ feature, isActive, onMouseEnter, onMouseLeave, index, wid
       </CardContent>
       
       <CardFooter className="pt-2">
-        <Button variant="outline" className="w-full group" size="sm">
+        <Button 
+          variant="outline" 
+          className="w-full group" 
+          size="sm"
+          onClick={onLearnMore}
+        >
           Learn More
           <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
         </Button>

@@ -87,7 +87,7 @@ const HowItWorks = () => {
                   ? 'bg-white/70 dark:bg-gray-800/70 border-primary/30 shadow-lg transform scale-[1.03]' 
                   : 'bg-white/50 dark:bg-gray-800/20 border-white/20 dark:border-gray-700/20 hover:shadow-lg hover:bg-white/60'
               }`}
-              style={{ animationDelay: `${index * 150}ms` }}
+              style={{ animationDelay: `${index * 150}ms`, position: 'relative', zIndex: 20 }}
               onMouseEnter={() => setActiveStep(index)}
               onMouseLeave={() => setActiveStep(null)}
             >
@@ -109,7 +109,7 @@ const HowItWorks = () => {
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="mt-2 bg-white/50 hover:bg-white/80 group"
+                    className="mt-2 bg-white/50 hover:bg-white/80 group relative z-30"
                     onClick={() => handleLearnMore(index)}
                   >
                     Learn More
@@ -152,17 +152,14 @@ const HowItWorks = () => {
           ))}
         </div>
         
-        {/* Connection lines between steps (visible on larger screens) */}
-        <div className="hidden lg:block relative mt-8">
-          <div className="absolute top-[-100px] left-[24%] w-[52%] h-1.5 bg-gradient-to-r from-isl-primary via-isl-secondary to-isl-accent opacity-30 rounded-full"></div>
-        </div>
+        {/* Connection lines between steps (visible on larger screens) - removed problematic positioning */}
         
-        {/* Enhanced Features Section */}
+        {/* Enhanced Features Section - Improved heading styling */}
         <div className="mt-24 bg-white/30 dark:bg-gray-800/30 backdrop-blur-sm rounded-2xl p-8 border border-white/30 dark:border-gray-700/30 shadow-lg">
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center md:text-left md:col-span-3">
-              <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-isl-primary to-isl-secondary bg-clip-text text-transparent">Enhanced Features</h3>
-              <p className="text-muted-foreground">Our system goes beyond basic recognition with these advanced capabilities</p>
+            <div className="text-center md:col-span-3">
+              <h3 className="text-3xl font-bold mb-4 bg-gradient-to-r from-isl-primary to-isl-secondary bg-clip-text text-transparent">Enhanced Features</h3>
+              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">Our system goes beyond basic recognition with these advanced capabilities</p>
             </div>
             
             <FeatureCard 
