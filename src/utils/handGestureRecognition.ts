@@ -1,3 +1,4 @@
+
 import { FilesetResolver, GestureRecognizer, type GestureRecognizerResult } from '@mediapipe/tasks-vision';
 
 // Define recognized gestures types
@@ -21,6 +22,23 @@ const gestureToMeaning = new Map<string, string>([
   ['ILoveYou', 'I love you'],
   ['Victory', 'Peace'],
   ['Pointing_Up', 'Attention'],
+  // Additional gestures
+  ['Pointing_Down', 'Below'],
+  ['Pointing_Left', 'Left'],
+  ['Pointing_Right', 'Right'],
+  ['Four_Fingers', 'Four'],
+  ['Three_Fingers', 'Three'],
+  ['Two_Fingers', 'Two'],
+  ['One_Finger', 'One'],
+  ['Pinch', 'Small'],
+  ['Spread_Fingers', 'Big'],
+  ['Waving_Hand', 'Goodbye'],
+  ['Fist_Bump', 'Friend'],
+  ['Letter_A', 'A'],
+  ['Letter_B', 'B'],
+  ['Letter_C', 'C'],
+  ['Letter_D', 'D'],
+  ['Letter_E', 'E'],
   // Add more as needed, but allow showing "raw" name if no mapping provided
 ]);
 
