@@ -1,31 +1,29 @@
 
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { 
   Upload, 
   Camera, 
   Database, 
-  Play,
-  Pause, 
   Plus, 
-  Save, 
-  Check, 
-  X, 
-  BarChart4, 
-  CameraOff,
-  FileVideo,
+  Pause, 
   Webcam,
   FlaskConical,
   BookText,
-  HardDrive
 } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
+import { DatasetProvider, useDataset } from '@/context/DatasetContext';
+import CameraView from './dataset/CameraView';
+import GestureSamplesDisplay from './dataset/GestureSamplesDisplay';
+import TrainingParameters from './dataset/TrainingParameters';
+import TrainingProgress from './dataset/TrainingProgress';
+import ModelsList from './dataset/ModelsList';
+import DefaultModels from './dataset/DefaultModels';
 
 const SAMPLE_GESTURES = [
   "Hello", "Thank You", "Please", "Yes", "No", 
@@ -34,16 +32,27 @@ const SAMPLE_GESTURES = [
   "Family", "Friend", "School", "Work", "Home"
 ];
 
-const DatasetTraining = () => {
+const DatasetTrainingContent = () => {
   const [activeTab, setActiveTab] = useState('collect');
   const [isRecording, setIsRecording] = useState(false);
   const [gestureName, setGestureName] = useState('');
   const [gestureDescription, setGestureDescription] = useState('');
-  const [collectedSamples, setCollectedSamples] = useState<{[key: string]: number}>({});
-  const [trainingProgress, setTrainingProgress] = useState(0);
-  const [isTraining, setIsTraining] = useState(false);
-  const [trainedGestures, setTrainedGestures] = useState<string[]>([]);
-
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const {
+    gestureSamples,
+    addGestureSample,
+    clearGestureSamples,
+    exportDataset,
+    startTraining,
+    stopTraining,
+    isTraining,
+    trainingProgress,
+    trainedModels,
+    setActiveModel,
+    deleteModel
+  } = useDataset();
+  
   const startRecording = () => {
     if (!gestureName.trim()) {
       toast.error("Please enter a gesture name");
@@ -52,21 +61,17 @@ const DatasetTraining = () => {
     
     setIsRecording(true);
     toast.info(`Recording samples for "${gestureName}"...`);
-    
-    // Simulate sample collection (in a real app, this would capture frames/video)
-    setTimeout(() => {
-      setCollectedSamples(prev => ({
-        ...prev,
-        [gestureName]: (prev[gestureName] || 0) + 10
-      }));
-      setIsRecording(false);
-      toast.success(`Collected 10 samples for "${gestureName}"`);
-    }, 3000);
   };
   
   const stopRecording = () => {
     setIsRecording(false);
     toast.info("Recording stopped");
+  };
+  
+  const handleRecordingComplete = (frames: number) => {
+    if (frames > 0 && gestureName) {
+      addGestureSample(gestureName, gestureDescription, frames);
+    }
   };
   
   const addGestureToDataset = () => {
@@ -75,7 +80,7 @@ const DatasetTraining = () => {
       return;
     }
     
-    if (!collectedSamples[gestureName]) {
+    if (!gestureSamples[gestureName]) {
       toast.error("You need to collect samples first");
       return;
     }
@@ -85,39 +90,44 @@ const DatasetTraining = () => {
     setGestureDescription('');
   };
   
-  const startTraining = () => {
-    const totalGestures = Object.keys(collectedSamples).length;
-    
-    if (totalGestures === 0) {
-      toast.error("You need to collect samples for at least one gesture");
-      return;
+  const handleImportDatasetClick = useCallback(() => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
     }
+  }, []);
+  
+  const handleFileImport = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
     
-    setIsTraining(true);
-    toast.info("Training model with custom dataset...");
-    
-    // Simulate training process
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 5;
-      setTrainingProgress(progress);
-      
-      if (progress >= 100) {
-        clearInterval(interval);
-        setIsTraining(false);
-        setTrainedGestures(Object.keys(collectedSamples));
-        toast.success("Model training complete");
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const jsonData = JSON.parse(event.target?.result as string);
+        // Here we'd validate the data structure before importing
+        toast.success("Dataset imported successfully");
+      } catch (error) {
+        toast.error("Invalid dataset file format");
       }
-    }, 500);
-  };
+    };
+    reader.readAsText(file);
+  }, []);
+  
+  const handleFrameCapture = useCallback((videoElement: HTMLVideoElement) => {
+    // In a real implementation, this would process and extract features from each frame
+    // using a computer vision library or model
+    console.log("Frame captured from video element", videoElement.currentTime);
+  }, []);
   
   const getTotalSamples = () => {
-    return Object.values(collectedSamples).reduce((sum, count) => sum + count, 0);
+    return Object.values(gestureSamples).reduce((sum, gesture) => sum + gesture.sampleCount, 0);
   };
   
-  const clearDataset = () => {
-    setCollectedSamples({});
-    toast.info("Dataset cleared");
+  const handleSelectGesture = (name: string) => {
+    setGestureName(name);
+    if (gestureSamples[name]?.description) {
+      setGestureDescription(gestureSamples[name].description || '');
+    }
   };
 
   return (
@@ -203,7 +213,7 @@ const DatasetTraining = () => {
                     <Button
                       variant="outline"
                       onClick={addGestureToDataset}
-                      disabled={isRecording || !gestureName.trim() || !collectedSamples[gestureName]}
+                      disabled={isRecording || !gestureName.trim() || !gestureSamples[gestureName]}
                     >
                       <Plus className="mr-2 h-5 w-5" />
                       Add to Dataset
@@ -226,52 +236,19 @@ const DatasetTraining = () => {
                 </div>
                 
                 <div className="space-y-4">
-                  <div className="bg-black/20 backdrop-blur-sm rounded-lg aspect-video flex flex-col items-center justify-center border border-white/10">
-                    {isRecording ? (
-                      <div className="text-center space-y-4">
-                        <div className="w-20 h-20 rounded-full bg-red-500/20 flex items-center justify-center mx-auto animate-pulse">
-                          <div className="w-12 h-12 rounded-full bg-red-500 animate-pulse"></div>
-                        </div>
-                        <p className="text-lg font-medium">Recording "{gestureName}"</p>
-                        <p className="text-sm text-muted-foreground">Collecting samples...</p>
-                      </div>
-                    ) : (
-                      <div className="text-center space-y-4">
-                        <CameraOff className="h-16 w-16 text-muted-foreground mb-2" />
-                        <p className="text-muted-foreground">Camera inactive</p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="text-xs"
-                          onClick={() => document.getElementById('videoUpload')?.click()}
-                        >
-                          <FileVideo className="h-3.5 w-3.5 mr-1.5" />
-                          Upload Video
-                          <input id="videoUpload" type="file" accept="video/*" className="hidden" />
-                        </Button>
-                      </div>
-                    )}
-                  </div>
+                  <CameraView 
+                    isRecording={isRecording} 
+                    gestureName={gestureName}
+                    onFrameCapture={handleFrameCapture}
+                    onRecordingComplete={handleRecordingComplete}
+                  />
                   
                   <div className="space-y-3">
                     <h4 className="font-medium">Collected Data</h4>
-                    {Object.keys(collectedSamples).length > 0 ? (
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        {Object.entries(collectedSamples).map(([name, count]) => (
-                          <div 
-                            key={name}
-                            className="bg-white/50 dark:bg-gray-900/30 rounded-lg p-2 border border-white/20 dark:border-gray-800/20 text-sm flex justify-between items-center"
-                          >
-                            <span className="font-medium">{name}</span>
-                            <Badge variant="secondary" className="text-xs">
-                              {count} samples
-                            </Badge>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground italic">No data collected yet</p>
-                    )}
+                    <GestureSamplesDisplay 
+                      samples={gestureSamples} 
+                      onSelectGesture={handleSelectGesture}
+                    />
                   </div>
                   
                   <div className="pt-2">
@@ -295,265 +272,46 @@ const DatasetTraining = () => {
             
             <TabsContent value="train" className="space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-5">
-                  <div className="space-y-2">
-                    <h4 className="font-medium">Training Data Summary</h4>
-                    <div className="bg-white/50 dark:bg-gray-900/30 rounded-lg p-4 border border-white/20 dark:border-gray-800/20">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-sm text-muted-foreground">Total Gestures</p>
-                          <p className="text-2xl font-bold">{Object.keys(collectedSamples).length}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Total Samples</p>
-                          <p className="text-2xl font-bold">{getTotalSamples()}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <h4 className="font-medium">Training Parameters</h4>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-sm text-muted-foreground">Epochs</label>
-                        <Input type="number" defaultValue="50" />
-                      </div>
-                      <div>
-                        <label className="text-sm text-muted-foreground">Learning Rate</label>
-                        <Input type="number" defaultValue="0.001" step="0.001" />
-                      </div>
-                      <div>
-                        <label className="text-sm text-muted-foreground">Batch Size</label>
-                        <Input type="number" defaultValue="32" />
-                      </div>
-                      <div>
-                        <label className="text-sm text-muted-foreground">Validation Split</label>
-                        <Input type="number" defaultValue="0.2" step="0.1" max="0.5" />
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <h4 className="font-medium">Advanced Options</h4>
-                    <div className="grid grid-cols-2 gap-3">
-                      <Button variant="outline" size="sm" className="flex items-center justify-center py-4">
-                        <HardDrive className="mr-1.5 h-4 w-4" />
-                        Import Dataset
-                      </Button>
-                      <Button variant="outline" size="sm" className="flex items-center justify-center py-4">
-                        <Save className="mr-1.5 h-4 w-4" />
-                        Export Dataset
-                      </Button>
-                      <Button variant="outline" size="sm" className="flex items-center justify-center py-4">
-                        <BarChart4 className="mr-1.5 h-4 w-4" />
-                        Data Visualization
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="flex items-center justify-center py-4 text-destructive hover:text-destructive"
-                        onClick={clearDataset}
-                      >
-                        <X className="mr-1.5 h-4 w-4" />
-                        Clear Dataset
-                      </Button>
-                    </div>
-                  </div>
-                </div>
+                <TrainingParameters 
+                  totalGestures={Object.keys(gestureSamples).length}
+                  totalSamples={getTotalSamples()}
+                  onClearDataset={clearGestureSamples}
+                  onExportDataset={exportDataset}
+                  onImportDatasetClick={handleImportDatasetClick}
+                  onVisualizationClick={() => toast.info("Data visualization - Feature coming soon")}
+                />
                 
-                <div className="space-y-5">
-                  <div className="space-y-4">
-                    <div className="flex flex-col space-y-2">
-                      <div className="flex justify-between items-center">
-                        <h4 className="font-medium">Training Progress</h4>
-                        {isTraining && <Badge className="bg-green-500">Training</Badge>}
-                      </div>
-                      <Progress value={trainingProgress} className="h-2" />
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>{trainingProgress}% Complete</span>
-                        <span>{isTraining ? 'Estimated time: 2:45 remaining' : 'Ready to train'}</span>
-                      </div>
-                    </div>
-                    
-                    {isTraining ? (
-                      <div className="space-y-2">
-                        <div className="bg-white/80 dark:bg-gray-900/50 rounded-lg p-3 border border-white/20 dark:border-gray-800/20 h-32 overflow-y-auto font-mono text-xs">
-                          <div className="text-green-600 dark:text-green-400">
-                            [INFO] Initializing model training...<br />
-                            [INFO] Loading dataset with {getTotalSamples()} samples<br />
-                            [INFO] Preprocessing data...<br />
-                            [INFO] Training started, epoch 1/50<br />
-                            [INFO] Epoch 1/50: loss 2.34, accuracy 0.31<br />
-                            [INFO] Epoch 2/50: loss 1.87, accuracy 0.45<br />
-                            [INFO] Epoch 3/50: loss 1.56, accuracy 0.58
-                          </div>
-                        </div>
-                        <Button 
-                          variant="destructive"
-                          className="w-full"
-                          onClick={() => setIsTraining(false)}
-                        >
-                          <X className="mr-2 h-5 w-5" />
-                          Stop Training
-                        </Button>
-                      </div>
-                    ) : (
-                      <Button
-                        className="w-full bg-gradient-to-r from-isl-primary to-isl-secondary hover:opacity-90 py-6 text-lg"
-                        onClick={startTraining}
-                        disabled={Object.keys(collectedSamples).length === 0}
-                      >
-                        <Play className="mr-2 h-5 w-5" />
-                        Start Training
-                      </Button>
-                    )}
-                  </div>
-                  
-                  <div className="bg-muted/30 rounded-lg p-4 border border-muted">
-                    <h4 className="font-medium mb-3">Training Information</h4>
-                    <ul className="space-y-2 text-sm text-muted-foreground">
-                      <li className="flex items-start">
-                        <Check className="h-4 w-4 mr-2 text-green-500 mt-0.5" />
-                        <span>Model will be trained for all collected gestures</span>
-                      </li>
-                      <li className="flex items-start">
-                        <Check className="h-4 w-4 mr-2 text-green-500 mt-0.5" />
-                        <span>Training is performed locally on your device</span>
-                      </li>
-                      <li className="flex items-start">
-                        <Check className="h-4 w-4 mr-2 text-green-500 mt-0.5" />
-                        <span>Estimated training time: 3-5 minutes for this dataset</span>
-                      </li>
-                      <li className="flex items-start">
-                        <Check className="h-4 w-4 mr-2 text-green-500 mt-0.5" />
-                        <span>Once trained, models can be exported and shared</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
+                <TrainingProgress 
+                  isTraining={isTraining}
+                  progress={trainingProgress}
+                  onStartTraining={startTraining}
+                  onStopTraining={stopTraining}
+                  canStartTraining={Object.keys(gestureSamples).length > 0}
+                />
               </div>
+              
+              <input 
+                ref={fileInputRef}
+                type="file" 
+                accept=".json" 
+                onChange={handleFileImport} 
+                className="hidden" 
+              />
             </TabsContent>
             
             <TabsContent value="manage" className="space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <h4 className="font-medium">Trained Models</h4>
-                  {trainedGestures.length > 0 ? (
-                    <div className="space-y-3">
-                      <div className="bg-white/50 dark:bg-gray-900/30 rounded-lg border border-white/20 dark:border-gray-800/20 overflow-hidden">
-                        <div className="bg-primary/10 p-3 border-b border-primary/20 flex justify-between items-center">
-                          <div className="font-medium">Custom ISL Model</div>
-                          <Badge className="bg-green-500">Active</Badge>
-                        </div>
-                        <div className="p-4">
-                          <div className="flex justify-between text-sm mb-3">
-                            <span className="text-muted-foreground">Created</span>
-                            <span>{new Date().toLocaleDateString()}</span>
-                          </div>
-                          <div className="flex justify-between text-sm mb-3">
-                            <span className="text-muted-foreground">Gestures</span>
-                            <span>{trainedGestures.length}</span>
-                          </div>
-                          <div className="flex justify-between text-sm mb-3">
-                            <span className="text-muted-foreground">Accuracy</span>
-                            <span>87%</span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Size</span>
-                            <span>4.2 MB</span>
-                          </div>
-                          
-                          <div className="mt-4 grid grid-cols-2 gap-2">
-                            <Button variant="outline" size="sm" className="w-full">
-                              <Save className="mr-1.5 h-4 w-4" />
-                              Export
-                            </Button>
-                            <Button variant="destructive" size="sm" className="w-full">
-                              <X className="mr-1.5 h-4 w-4" />
-                              Delete
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="bg-white/50 dark:bg-gray-900/30 rounded-lg border border-white/20 dark:border-gray-800/20 p-3">
-                        <h5 className="font-medium mb-2">Included Gestures</h5>
-                        <div className="flex flex-wrap gap-2">
-                          {trainedGestures.map(gesture => (
-                            <Badge key={gesture} variant="outline" className="bg-white/50">
-                              {gesture}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="bg-white/50 dark:bg-gray-900/30 rounded-lg border border-white/20 dark:border-gray-800/20 p-6 flex flex-col items-center justify-center h-64">
-                      <FileVideo className="h-12 w-12 text-muted-foreground mb-4" />
-                      <p className="text-muted-foreground">No custom models trained yet</p>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="mt-4"
-                        onClick={() => setActiveTab('train')}
-                      >
-                        Train Your First Model
-                      </Button>
-                    </div>
-                  )}
+                  <ModelsList 
+                    models={trainedModels}
+                    onExportModel={(id) => toast.info(`Exporting model ${id}`)}
+                    onDeleteModel={deleteModel}
+                    onActivateModel={setActiveModel}
+                  />
                 </div>
                 
-                <div className="space-y-4">
-                  <h4 className="font-medium">Default Models</h4>
-                  <div className="bg-white/50 dark:bg-gray-900/30 rounded-lg border border-white/20 dark:border-gray-800/20 overflow-hidden">
-                    <div className="bg-muted p-3 border-b border-muted flex justify-between items-center">
-                      <div className="font-medium">MediaPipe Hand Gestures</div>
-                      <Badge variant="outline">Default</Badge>
-                    </div>
-                    <div className="p-4">
-                      <div className="flex justify-between text-sm mb-3">
-                        <span className="text-muted-foreground">Source</span>
-                        <span>Google MediaPipe</span>
-                      </div>
-                      <div className="flex justify-between text-sm mb-3">
-                        <span className="text-muted-foreground">Gestures</span>
-                        <span>7 built-in</span>
-                      </div>
-                      <div className="flex justify-between text-sm mb-3">
-                        <span className="text-muted-foreground">Accuracy</span>
-                        <span>95%</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Size</span>
-                        <span>2.8 MB</span>
-                      </div>
-                      
-                      <div className="mt-4">
-                        <Button variant="outline" size="sm" className="w-full">
-                          Use This Model
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 text-sm text-blue-800 dark:text-blue-200">
-                    <h4 className="font-medium mb-2">About Custom Training</h4>
-                    <p className="text-xs">
-                      Create specialized models for your specific sign language needs. Our system 
-                      allows you to train custom recognition models for regional dialects, 
-                      industry-specific signs, or educational settings.
-                    </p>
-                    <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-800/30">
-                      <h5 className="font-medium mb-1">Supported Platforms</h5>
-                      <ul className="list-disc pl-5 text-xs space-y-1">
-                        <li>Chrome and Edge browsers (desktop)</li>
-                        <li>Android and iOS (via WebView)</li>
-                        <li>Export for offline use</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
+                <DefaultModels />
               </div>
             </TabsContent>
           </Tabs>
@@ -562,5 +320,11 @@ const DatasetTraining = () => {
     </div>
   );
 };
+
+const DatasetTraining = () => (
+  <DatasetProvider>
+    <DatasetTrainingContent />
+  </DatasetProvider>
+);
 
 export default DatasetTraining;

@@ -16,6 +16,7 @@ import CheckoutPage from "./pages/CheckoutPage";
 import CheckoutSuccessPage from "./pages/CheckoutSuccessPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import FeaturesPage from "./pages/FeaturesPage";
+import { DatasetProvider } from "./context/DatasetContext";
 
 const queryClient = new QueryClient();
 
@@ -55,53 +56,55 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/privacy" element={<PrivacyPage />} />
-            <Route path="/pricing" element={<PricingPage />} />
-            <Route path="/features" element={<FeaturesPage />} /> {/* Added new route */}
-            <Route path="/login" element={<AuthPage />} />
-            <Route 
-              path="/dashboard" 
-              element={
-                <PrivateRoute>
-                  <DashboardPage />
-                </PrivateRoute>
-              } 
-            />
-            <Route 
-              path="/analytics" 
-              element={
-                <PrivateRoute>
-                  <AnalyticsPage />
-                </PrivateRoute>
-              } 
-            />
-            <Route 
-              path="/checkout" 
-              element={
-                <PrivateRoute>
-                  <CheckoutPage />
-                </PrivateRoute>
-              } 
-            />
-            <Route 
-              path="/checkout-success" 
-              element={
-                <PrivateRoute>
-                  <CheckoutSuccessPage />
-                </PrivateRoute>
-              } 
-            />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </TooltipProvider>
-      </BrowserRouter>
+      <DatasetProvider>
+        <BrowserRouter>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/privacy" element={<PrivacyPage />} />
+              <Route path="/pricing" element={<PricingPage />} />
+              <Route path="/features" element={<FeaturesPage />} />
+              <Route path="/login" element={<AuthPage />} />
+              <Route 
+                path="/dashboard" 
+                element={
+                  <PrivateRoute>
+                    <DashboardPage />
+                  </PrivateRoute>
+                } 
+              />
+              <Route 
+                path="/analytics" 
+                element={
+                  <PrivateRoute>
+                    <AnalyticsPage />
+                  </PrivateRoute>
+                } 
+              />
+              <Route 
+                path="/checkout" 
+                element={
+                  <PrivateRoute>
+                    <CheckoutPage />
+                  </PrivateRoute>
+                } 
+              />
+              <Route 
+                path="/checkout-success" 
+                element={
+                  <PrivateRoute>
+                    <CheckoutSuccessPage />
+                  </PrivateRoute>
+                } 
+              />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </TooltipProvider>
+        </BrowserRouter>
+      </DatasetProvider>
     </QueryClientProvider>
   );
 };
