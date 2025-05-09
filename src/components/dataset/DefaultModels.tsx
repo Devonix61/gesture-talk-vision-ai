@@ -36,7 +36,7 @@ const DefaultModels = () => {
           </div>
           <div className="flex justify-between text-sm mb-3">
             <span className="text-muted-foreground">Gestures</span>
-            <span>23 built-in</span>
+            <span>75+ built-in</span>
           </div>
           <div className="flex justify-between text-sm mb-3">
             <span className="text-muted-foreground">Accuracy</span>
@@ -77,7 +77,7 @@ const DefaultModels = () => {
           </div>
           <div className="flex justify-between text-sm mb-3">
             <span className="text-muted-foreground">Gestures</span>
-            <span>50+ specialized</span>
+            <span>100+ specialized</span>
           </div>
           <div className="flex justify-between text-sm mb-3">
             <span className="text-muted-foreground">Accuracy</span>

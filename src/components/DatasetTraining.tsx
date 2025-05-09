@@ -29,7 +29,11 @@ const SAMPLE_GESTURES = [
   "Hello", "Thank You", "Please", "Yes", "No", 
   "Help", "Name", "Where", "How", "What",
   "Time", "Want", "Need", "Eat", "Drink",
-  "Family", "Friend", "School", "Work", "Home"
+  "Family", "Friend", "School", "Work", "Home",
+  "Sorry", "Peace", "Love", "When", "Why",
+  "Who", "Stop", "Zero", "One", "Two", 
+  "Three", "Four", "Five", "Six", "Seven", 
+  "Eight", "Nine", "Left", "Right", "Big", "Small"
 ];
 
 const DatasetTrainingContent = () => {

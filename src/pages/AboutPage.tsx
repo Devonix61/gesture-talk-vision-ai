@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -103,14 +102,70 @@ const AboutPage = () => {
               <p className="mb-4 text-muted-foreground">
                 Our system currently recognizes and translates the following gesture categories:
               </p>
-              <div className="flex flex-wrap gap-2">
-                {['Yes', 'No', 'Hello', 'Stop', 'I love you', 'Peace', 'Attention', 
-                  'Below', 'Left', 'Right', 'Four', 'Three', 'Two', 'One', 
-                  'Small', 'Big', 'Goodbye', 'Friend', 'A', 'B', 'C', 'D', 'E'].map((gesture) => (
+              <div className="flex flex-wrap gap-2 mb-4">
+                <h4 className="w-full font-medium text-sm mb-1">Basic Communication:</h4>
+                {['Yes', 'No', 'Hello', 'Stop', 'I love you', 'Peace', 'Attention', 'Thank You', 'Please', 'Sorry'].map((gesture) => (
                   <Badge key={gesture} className="bg-primary/10 hover:bg-primary/20 text-primary py-1.5">
                     {gesture}
                   </Badge>
                 ))}
+              </div>
+              
+              <div className="flex flex-wrap gap-2 mb-4">
+                <h4 className="w-full font-medium text-sm mb-1">Questions:</h4>
+                {['Where', 'When', 'Who', 'Why', 'How', 'What'].map((gesture) => (
+                  <Badge key={gesture} className="bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 py-1.5">
+                    {gesture}
+                  </Badge>
+                ))}
+              </div>
+              
+              <div className="flex flex-wrap gap-2 mb-4">
+                <h4 className="w-full font-medium text-sm mb-1">Numbers:</h4>
+                {['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'].map((gesture) => (
+                  <Badge key={gesture} className="bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 py-1.5">
+                    {gesture}
+                  </Badge>
+                ))}
+              </div>
+              
+              <div className="flex flex-wrap gap-2 mb-4">
+                <h4 className="w-full font-medium text-sm mb-1">Directions:</h4>
+                {['Left', 'Right', 'Below'].map((gesture) => (
+                  <Badge key={gesture} className="bg-green-500/10 hover:bg-green-500/20 text-green-600 dark:text-green-400 py-1.5">
+                    {gesture}
+                  </Badge>
+                ))}
+              </div>
+              
+              <div className="flex flex-wrap gap-2 mb-4">
+                <h4 className="w-full font-medium text-sm mb-1">Descriptors:</h4>
+                {['Small', 'Big', 'Help', 'Want', 'Need'].map((gesture) => (
+                  <Badge key={gesture} className="bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 py-1.5">
+                    {gesture}
+                  </Badge>
+                ))}
+              </div>
+              
+              <div className="flex flex-wrap gap-2 mb-4">
+                <h4 className="w-full font-medium text-sm mb-1">Common Words:</h4>
+                {['Eat', 'Drink', 'Family', 'School', 'Work', 'Home', 'Name', 'Time', 'Friend', 'Goodbye'].map((gesture) => (
+                  <Badge key={gesture} className="bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 py-1.5">
+                    {gesture}
+                  </Badge>
+                ))}
+              </div>
+              
+              <div className="flex flex-wrap gap-2">
+                <h4 className="w-full font-medium text-sm mb-1">Alphabet:</h4>
+                {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'].map((gesture) => (
+                  <Badge key={gesture} className="bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 py-1.5">
+                    {gesture}
+                  </Badge>
+                ))}
+              </div>
+              
+              <div className="mt-4">
                 <Badge className="bg-secondary/10 hover:bg-secondary/20 text-secondary py-1.5">
                   + Custom gestures via training
                 </Badge>
